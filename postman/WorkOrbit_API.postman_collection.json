@@ -1,0 +1,904 @@
+{
+	"info": {
+		"_postman_id": "workorbit-enterprise-api",
+		"name": "WorkOrbit Enterprise API",
+		"description": "Complete API collection for WorkOrbit Employee Management System with real-time notifications, analytics, caching, and advanced search capabilities.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"version": "2.0.0"
+	},
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "{{accessToken}}",
+				"type": "string"
+			}
+		]
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:5000/api/v1"
+		},
+		{
+			"key": "accessToken",
+			"value": ""
+		},
+		{
+			"key": "userId",
+			"value": ""
+		},
+		{
+			"key": "organizationId",
+			"value": ""
+		}
+	],
+	"item": [
+		{
+			"name": "🔐 Authentication",
+			"item": [
+				{
+					"name": "Register User",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 201) {",
+									"    const response = pm.response.json();",
+									"    if (response.data && response.data.accessToken) {",
+									"        pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"        pm.collectionVariables.set('userId', response.data.user.id);",
+									"    }",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [
+							{
+								"key": "Content-Type",
+								"value": "application/json"
+							}
+						],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\",\n  \"phone\": \"+1234567890\",\n  \"role\": \"employee\",\n  \"department\": \"IT\",\n  \"designation\": \"Software Engineer\"\n}"
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/register",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "register"]
+						}
+					}
+				},
+				{
+					"name": "Login",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									"if (pm.response.code === 200) {",
+									"    const response = pm.response.json();",
+									"    pm.collectionVariables.set('accessToken', response.data.accessToken);",
+									"    pm.collectionVariables.set('userId', response.data.user.id);",
+									"    pm.collectionVariables.set('organizationId', response.data.user.organizationId);",
+									"}"
+								]
+							}
+						}
+					],
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"SecurePass123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/login",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "login"]
+						}
+					}
+				},
+				{
+					"name": "Forgot Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"email\": \"john.doe@example.com\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/forgot-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "forgot-password"]
+						}
+					}
+				},
+				{
+					"name": "Reset Password",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"12345678\",\n  \"newPassword\": \"NewSecurePass123!\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/auth/reset-password",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "reset-password"]
+						}
+					}
+				},
+				{
+					"name": "Refresh Token",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/refresh-token",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "refresh-token"]
+						}
+					}
+				},
+				{
+					"name": "Logout",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/auth/logout",
+							"host": ["{{baseUrl}}"],
+							"path": ["auth", "logout"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "👥 Employees",
+			"item": [
+				{
+					"name": "Get All Employees (Advanced Search)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/employees?search=john&filter[department]=IT&filter[status]=active&filter[salary][$gte]=50000&sort=-createdAt&page=1&limit=20&fields=id,name,email,department",
+							"host": ["{{baseUrl}}"],
+							"path": ["employees"],
+							"query": [
+								{
+									"key": "search",
+									"value": "john",
+									"description": "Search across name, email"
+								},
+								{
+									"key": "filter[department]",
+									"value": "IT"
+								},
+								{
+									"key": "filter[status]",
+									"value": "active"
+								},
+								{
+									"key": "filter[salary][$gte]",
+									"value": "50000",
+									"description": "Salary >= 50000"
+								},
+								{
+									"key": "sort",
+									"value": "-createdAt",
+									"description": "- for descending"
+								},
+								{
+									"key": "page",
+									"value": "1"
+								},
+								{
+									"key": "limit",
+									"value": "20"
+								},
+								{
+									"key": "fields",
+									"value": "id,name,email,department",
+									"description": "Select specific fields"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Employee by ID",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/employees/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["employees", "{{userId}}"]
+						}
+					}
+				},
+				{
+					"name": "Update Employee",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"John Doe Updated\",\n  \"department\": \"Engineering\",\n  \"designation\": \"Senior Software Engineer\",\n  \"salary\": 85000\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/employees/{{userId}}",
+							"host": ["{{baseUrl}}"],
+							"path": ["employees", "{{userId}}"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📊 Analytics & Dashboard",
+			"item": [
+				{
+					"name": "Get Dashboard Stats (Cached)",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/dashboard?startDate=2024-01-01&endDate=2024-12-31",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "dashboard"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								}
+							]
+						},
+						"description": "Cached for 5 minutes. Returns employee, attendance, leave, project, and task statistics."
+					}
+				},
+				{
+					"name": "Get Attendance Trends",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/attendance-trends?period=weekly",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "attendance-trends"],
+							"query": [
+								{
+									"key": "period",
+									"value": "weekly",
+									"description": "Options: daily, weekly, monthly"
+								}
+							]
+						},
+						"description": "Cached for 10 minutes"
+					}
+				},
+				{
+					"name": "Get Employee Performance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/analytics/employee-performance/{{userId}}?startDate=2024-01-01&endDate=2024-12-31",
+							"host": ["{{baseUrl}}"],
+							"path": ["analytics", "employee-performance", "{{userId}}"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								}
+							]
+						},
+						"description": "Returns task completion, attendance, and leave metrics"
+					}
+				}
+			]
+		},
+		{
+			"name": "🔔 Notifications",
+			"item": [
+				{
+					"name": "Get Notification Preferences",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/preferences",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "preferences"]
+						}
+					}
+				},
+				{
+					"name": "Update Notification Preferences",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"emailEnabled\": true,\n  \"emailAttendance\": true,\n  \"emailLeave\": true,\n  \"emailTask\": true,\n  \"pushEnabled\": true,\n  \"pushTask\": true,\n  \"pushMeeting\": true,\n  \"doNotDisturb\": true,\n  \"dndStartTime\": \"22:00:00\",\n  \"dndEndTime\": \"08:00:00\",\n  \"dailyDigest\": true,\n  \"digestTime\": \"09:00:00\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/preferences",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "preferences"]
+						}
+					}
+				},
+				{
+					"name": "Register FCM Token (Push)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"token\": \"fcm-device-token-here\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/notifications/fcm-token",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "fcm-token"]
+						}
+					}
+				},
+				{
+					"name": "Send Test Notification",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/notifications/test",
+							"host": ["{{baseUrl}}"],
+							"path": ["notifications", "test"]
+						},
+						"description": "Sends a test WebSocket notification to the authenticated user"
+					}
+				}
+			]
+		},
+		{
+			"name": "📅 Attendance",
+			"item": [
+				{
+					"name": "Check In",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"address\": \"New York Office\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/attendance/checkin",
+							"host": ["{{baseUrl}}"],
+							"path": ["attendance", "checkin"]
+						}
+					}
+				},
+				{
+					"name": "Check Out",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"address\": \"New York Office\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/attendance/checkout",
+							"host": ["{{baseUrl}}"],
+							"path": ["attendance", "checkout"]
+						}
+					}
+				},
+				{
+					"name": "Get My Attendance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/attendance/my-attendance?startDate=2024-01-01&endDate=2024-12-31",
+							"host": ["{{baseUrl}}"],
+							"path": ["attendance", "my-attendance"],
+							"query": [
+								{
+									"key": "startDate",
+									"value": "2024-01-01"
+								},
+								{
+									"key": "endDate",
+									"value": "2024-12-31"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🏖️ Leave Management",
+			"item": [
+				{
+					"name": "Apply Leave",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"leaveType\": \"casual\",\n  \"startDate\": \"2024-06-01\",\n  \"endDate\": \"2024-06-03\",\n  \"numberOfDays\": 3,\n  \"reason\": \"Personal work\",\n  \"isHalfDay\": false\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leave/apply",
+							"host": ["{{baseUrl}}"],
+							"path": ["leave", "apply"]
+						}
+					}
+				},
+				{
+					"name": "Get My Leaves",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/leave/my-leaves?status=approved&year=2024",
+							"host": ["{{baseUrl}}"],
+							"path": ["leave", "my-leaves"],
+							"query": [
+								{
+									"key": "status",
+									"value": "approved"
+								},
+								{
+									"key": "year",
+									"value": "2024"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Get Leave Balance",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/leave/balance",
+							"host": ["{{baseUrl}}"],
+							"path": ["leave", "balance"]
+						}
+					}
+				},
+				{
+					"name": "Approve Leave (HR/Manager)",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"status\": \"approved\",\n  \"comments\": \"Approved for personal work\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/leave/approve/:leaveId",
+							"host": ["{{baseUrl}}"],
+							"path": ["leave", "approve", ":leaveId"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📁 Projects & Tasks",
+			"item": [
+				{
+					"name": "Create Project",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"E-Commerce Platform\",\n  \"description\": \"Building a modern e-commerce platform\",\n  \"startDate\": \"2024-01-01\",\n  \"endDate\": \"2024-12-31\",\n  \"budget\": 500000,\n  \"status\": \"active\",\n  \"priority\": \"high\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/projects",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects"]
+						}
+					}
+				},
+				{
+					"name": "Get All Projects",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/projects?status=active&priority=high",
+							"host": ["{{baseUrl}}"],
+							"path": ["projects"],
+							"query": [
+								{
+									"key": "status",
+									"value": "active"
+								},
+								{
+									"key": "priority",
+									"value": "high"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Create Task",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"title\": \"Implement user authentication\",\n  \"description\": \"Implement JWT-based authentication system\",\n  \"assigneeId\": \"{{userId}}\",\n  \"priority\": \"high\",\n  \"status\": \"todo\",\n  \"dueDate\": \"2024-06-30\",\n  \"estimatedHours\": 16\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/project/:projectId",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "project", ":projectId"]
+						}
+					}
+				},
+				{
+					"name": "Get My Tasks",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/tasks/my-tasks?status=in-progress&priority=high",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "my-tasks"],
+							"query": [
+								{
+									"key": "status",
+									"value": "in-progress"
+								},
+								{
+									"key": "priority",
+									"value": "high"
+								}
+							]
+						}
+					}
+				},
+				{
+					"name": "Update Task Progress",
+					"request": {
+						"method": "PUT",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"progress\": 75,\n  \"status\": \"in-progress\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/:taskId/progress",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", ":taskId", "progress"]
+						}
+					}
+				},
+				{
+					"name": "Bulk Update Tasks",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"taskIds\": [\"task-uuid-1\", \"task-uuid-2\"],\n  \"updates\": {\n    \"status\": \"completed\",\n    \"priority\": \"low\"\n  }\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/tasks/bulk-update",
+							"host": ["{{baseUrl}}"],
+							"path": ["tasks", "bulk-update"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🎯 Milestones",
+			"item": [
+				{
+					"name": "Create Milestone",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"MVP Release\",\n  \"description\": \"Minimum viable product release\",\n  \"dueDate\": \"2024-06-30\",\n  \"status\": \"in-progress\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/milestones/project/:projectId",
+							"host": ["{{baseUrl}}"],
+							"path": ["milestones", "project", ":projectId"]
+						}
+					}
+				},
+				{
+					"name": "Complete Milestone",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/milestones/:milestoneId/complete",
+							"host": ["{{baseUrl}}"],
+							"path": ["milestones", ":milestoneId", "complete"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "💰 Payroll",
+			"item": [
+				{
+					"name": "Generate Payroll (Admin/HR)",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"month\": 5,\n  \"year\": 2024\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/payroll/generate",
+							"host": ["{{baseUrl}}"],
+							"path": ["payroll", "generate"]
+						}
+					}
+				},
+				{
+					"name": "Get My Payslips",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/payroll/my-payslips?year=2024",
+							"host": ["{{baseUrl}}"],
+							"path": ["payroll", "my-payslips"],
+							"query": [
+								{
+									"key": "year",
+									"value": "2024"
+								}
+							]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "📍 Geofences",
+			"item": [
+				{
+					"name": "Create Geofence",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n  \"name\": \"New York Office\",\n  \"latitude\": 40.7128,\n  \"longitude\": -74.0060,\n  \"radius\": 200,\n  \"isActive\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{baseUrl}}/geofences",
+							"host": ["{{baseUrl}}"],
+							"path": ["geofences"]
+						}
+					}
+				},
+				{
+					"name": "Get All Geofences",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "{{baseUrl}}/geofences",
+							"host": ["{{baseUrl}}"],
+							"path": ["geofences"]
+						}
+					}
+				}
+			]
+		},
+		{
+			"name": "🏥 Health & Monitoring",
+			"item": [
+				{
+					"name": "Health Check",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/health",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "5000",
+							"path": ["health"]
+						},
+						"description": "Complete health check with database and memory status"
+					}
+				},
+				{
+					"name": "Liveness Probe (Kubernetes)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/health/live",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "5000",
+							"path": ["health", "live"]
+						}
+					}
+				},
+				{
+					"name": "Readiness Probe (Kubernetes)",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/health/ready",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "5000",
+							"path": ["health", "ready"]
+						}
+					}
+				},
+				{
+					"name": "Prometheus Metrics",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "http://localhost:5000/metrics",
+							"protocol": "http",
+							"host": ["localhost"],
+							"port": "5000",
+							"path": ["metrics"]
+						},
+						"description": "Prometheus-format metrics for monitoring"
+					}
+				}
+			]
+		}
+	]
+}

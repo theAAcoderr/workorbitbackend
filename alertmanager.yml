@@ -1,0 +1,61 @@
+# Alertmanager Configuration
+
+global:
+  # Slack webhook for alerts
+  slack_api_url: '${SLACK_WEBHOOK_URL}'
+
+# Alert routing
+route:
+  group_by: ['alertname', 'cluster', 'service']
+  group_wait: 10s
+  group_interval: 10s
+  repeat_interval: 12h
+  receiver: 'default'
+  
+  routes:
+    # Critical alerts go to multiple channels
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true
+    
+    # Warning alerts
+    - match:
+        severity: warning
+      receiver: 'warning-alerts'
+
+# Alert receivers
+receivers:
+  - name: 'default'
+    email_configs:
+      - to: '${ALERT_EMAIL:-admin@workorbit.com}'
+        from: '${ALERT_FROM_EMAIL:-alerts@workorbit.com}'
+        smarthost: '${SMTP_HOST:-smtp.gmail.com}:587'
+        auth_username: '${SMTP_USER}'
+        auth_password: '${SMTP_PASSWORD}'
+        headers:
+          Subject: '[WorkOrbit] {{ .GroupLabels.alertname }}'
+
+  - name: 'critical-alerts'
+    slack_configs:
+      - channel: '#workorbit-critical-alerts'
+        title: ':rotating_light: Critical Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ .Annotations.description }}\n{{ end }}'
+    email_configs:
+      - to: '${CRITICAL_ALERT_EMAIL:-admin@workorbit.com}'
+    # Add PagerDuty, Opsgenie, etc. here
+    
+  - name: 'warning-alerts'
+    slack_configs:
+      - channel: '#workorbit-alerts'
+        title: ':warning: Warning Alert'
+        text: '{{ range .Alerts }}{{ .Annotations.summary }}\n{{ end }}'
+
+# Inhibition rules (suppress alerts when certain conditions are met)
+inhibit_rules:
+  - source_match:
+      severity: 'critical'
+    target_match:
+      severity: 'warning'
+    equal: ['alertname', 'instance']
+

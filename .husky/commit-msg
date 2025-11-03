@@ -1,0 +1,12 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+# Validate commit message format
+# Conventional Commits: type(scope): description
+# Examples:
+#   feat(auth): add two-factor authentication
+#   fix(api): resolve CORS issue
+#   docs(readme): update installation guide
+
+npx --no -- commitlint --edit "$1"
+

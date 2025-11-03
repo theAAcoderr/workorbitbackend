@@ -1,0 +1,35 @@
+# =============================================
+# WorkOrbit Backend - Development Dockerfile
+# Includes nodemon for hot reload
+# =============================================
+
+FROM node:18-alpine AS development
+
+# Install development dependencies
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    git
+
+WORKDIR /app
+
+# Copy package files
+COPY package*.json ./
+
+# Install all dependencies (including dev)
+RUN npm install
+
+# Copy source code
+COPY . .
+
+# Create directories
+RUN mkdir -p logs uploads backups
+
+# Expose ports
+EXPOSE 5000
+EXPOSE 9229
+
+# Start with nodemon for hot reload
+CMD ["npm", "run", "dev"]
+

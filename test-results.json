@@ -1,0 +1,85 @@
+{
+  "timestamp": "2025-10-31T09:50:33.110Z",
+  "baseUrl": "http://localhost:5000",
+  "summary": {
+    "passed": 17,
+    "failed": 1,
+    "skipped": 0,
+    "successRate": "94.44%"
+  },
+  "tests": [
+    {
+      "name": "Server is running",
+      "status": "PASSED"
+    },
+    {
+      "name": "API base is accessible",
+      "status": "FAILED",
+      "error": "Request failed with status code 401"
+    },
+    {
+      "name": "Register endpoint exists",
+      "status": "PASSED"
+    },
+    {
+      "name": "Login endpoint exists",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get current user profile",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get all users endpoint",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get organizations endpoint",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get attendance records",
+      "status": "PASSED"
+    },
+    {
+      "name": "Check-in endpoint exists",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get leave requests",
+      "status": "PASSED"
+    },
+    {
+      "name": "Leave types endpoint",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get payroll records",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get payslips",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get meetings",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get tasks",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get geofences",
+      "status": "PASSED"
+    },
+    {
+      "name": "Attendance reports endpoint",
+      "status": "PASSED"
+    },
+    {
+      "name": "Get departments",
+      "status": "PASSED"
+    }
+  ]
+}

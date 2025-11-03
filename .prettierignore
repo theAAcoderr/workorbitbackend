@@ -1,0 +1,33 @@
+# Dependencies
+node_modules
+package-lock.json
+
+# Build outputs
+dist
+build
+coverage
+
+# Logs
+logs
+*.log
+
+# Database
+*.sql
+*.dump
+
+# Environment files
+.env
+.env.*
+
+# Git
+.git
+
+# IDE
+.vscode
+.idea
+
+# Temporary files
+*.tmp
+*.swp
+*.swo
+

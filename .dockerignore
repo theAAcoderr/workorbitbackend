@@ -1,0 +1,65 @@
+# Node modules
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Logs
+logs
+*.log
+
+# Backups
+backups
+*.sql
+*.dump
+
+# Testing
+coverage
+.nyc_output
+test-results
+
+# Development files
+.git
+.gitignore
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# Documentation
+*.md
+!README.md
+docs
+
+# CI/CD
+.github
+.gitlab-ci.yml
+.travis.yml
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Build artifacts
+dist
+build
+.next
+
+# Temporary files
+tmp
+temp
+*.tmp
+
+# Uploads (exclude user uploads from image)
+uploads/*
+!uploads/.gitkeep
+
+# Database files
+*.sqlite
+*.db
+

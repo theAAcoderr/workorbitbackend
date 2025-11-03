@@ -1,0 +1,76 @@
+# Backend Alert Rules
+
+groups:
+  - name: backend_alerts
+    interval: 30s
+    rules:
+      # High error rate
+      - alert: HighErrorRate
+        expr: rate(http_requests_total{status_code=~"5.."}[5m]) > 0.05
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High HTTP 5xx error rate"
+          description: "Error rate is {{ $value }}% for {{ $labels.instance }}"
+
+      # API Response Time
+      - alert: SlowAPIResponse
+        expr: histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m])) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Slow API response time"
+          description: "95th percentile response time is {{ $value }}s"
+
+      # High memory usage
+      - alert: HighMemoryUsage
+        expr: process_resident_memory_bytes / 1024 / 1024 > 512
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High memory usage"
+          description: "Memory usage is {{ $value }}MB"
+
+      # Database connection pool exhausted
+      - alert: DatabasePoolExhausted
+        expr: db_connections_active >= db_connections_max
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Database connection pool exhausted"
+          description: "All database connections are in use"
+
+      # Service down
+      - alert: ServiceDown
+        expr: up{job="workorbit-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "WorkOrbit backend is down"
+          description: "Backend service is unreachable"
+
+      # High request rate
+      - alert: HighRequestRate
+        expr: rate(http_requests_total[5m]) > 1000
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High request rate detected"
+          description: "Request rate is {{ $value }} req/s"
+
+      # Failed authentication attempts
+      - alert: HighFailedLogins
+        expr: rate(auth_failed_attempts_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High number of failed login attempts"
+          description: "{{ $value }} failed login attempts per second"
+

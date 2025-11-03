@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Users/Administrator/Downloads/final2/issue/new_employee/**)",
+      "Read(//c/Users/Administrator/Downloads/final2/issue/new_employee (14)/new_employee/lib/Features/recruitment/**)",
+      "Read(//c/Users/Administrator/Downloads/final2/issue/new_employee (14)/new_employee/lib/Features/recruitment/screens/**)",
+      "Bash(find:*)",
+      "Bash(awk:*)",
+      "Bash(npm install:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
