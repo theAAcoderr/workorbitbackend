@@ -2,34 +2,90 @@ const nodemailer = require('nodemailer');
 
 class EmailService {
   constructor() {
-    this.transporter = nodemailer.createTransport({
-      host: process.env.EMAIL_HOST || 'smtp.gmail.com',
-      port: parseInt(process.env.EMAIL_PORT) || 587,
-      secure: false,
-      auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
-      }
-    });
+    // Check if email credentials are configured
+    this.isConfigured = !!(process.env.EMAIL_USER && process.env.EMAIL_PASSWORD);
+
+    if (!this.isConfigured) {
+      console.warn('⚠️  Email service not configured - emails will be logged but not sent');
+      console.warn('   Set EMAIL_USER and EMAIL_PASSWORD environment variables to enable email sending');
+      this.transporter = null;
+      return;
+    }
+
+    try {
+      this.transporter = nodemailer.createTransport({
+        host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+        port: parseInt(process.env.EMAIL_PORT) || 587,
+        secure: false,
+        auth: {
+          user: process.env.EMAIL_USER,
+          pass: process.env.EMAIL_PASSWORD
+        },
+        // Add connection pooling and timeout configuration
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        rateDelta: 1000,
+        rateLimit: 5,
+        connectionTimeout: 10000, // 10 seconds
+        greetingTimeout: 10000,
+        socketTimeout: 15000, // 15 seconds
+        // Retry configuration
+        retry: {
+          maxRetries: 2,
+          factor: 2,
+          minTimeout: 1000,
+          maxTimeout: 5000
+        }
+      });
+      console.log('✅ Email service initialized successfully');
+    } catch (error) {
+      console.error('❌ Failed to initialize email service:', error.message);
+      this.transporter = null;
+      this.isConfigured = false;
+    }
   }
 
   // Test email connection
   async testConnection() {
+    if (!this.isConfigured || !this.transporter) {
+      console.log('⚠️  Email service not configured - skipping connection test');
+      return false;
+    }
+
     try {
       await this.transporter.verify();
-      console.log('Email service is ready to send emails');
+      console.log('✅ Email service is ready to send emails');
       return true;
     } catch (error) {
-      console.error('Email service connection failed:', error);
+      console.error('❌ Email service connection failed:', error.message);
+      console.warn('⚠️  Emails will be logged but not sent');
       return false;
     }
   }
 
+  // Log email instead of sending (fallback when service is not configured)
+  logEmail(type, data) {
+    console.log('\n📧 EMAIL LOG (not sent - service not configured)');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log(`Type: ${type}`);
+    console.log(`Recipient: ${data.to || data.email || 'N/A'}`);
+    console.log(`Subject: ${data.subject || 'N/A'}`);
+    console.log(`Data:`, JSON.stringify(data, null, 2));
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n');
+  }
+
   // Send password reset OTP email
   async sendPasswordResetOTP(data) {
-    try {
-      const { email, name, otpCode } = data;
+    const { email, name, otpCode } = data;
 
+    // If email service is not configured, just log it
+    if (!this.isConfigured || !this.transporter) {
+      this.logEmail('Password Reset OTP', { email, name, otpCode });
+      return { success: true, messageId: 'logged-only', note: 'Email service not configured' };
+    }
+
+    try {
       const mailOptions = {
         from: {
           name: process.env.EMAIL_FROM_NAME || 'WorkOrbit Support',
@@ -41,11 +97,14 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Password reset OTP email sent:', info.messageId);
+      console.log('✅ Password reset OTP email sent:', info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Error sending password reset OTP email:', error);
-      return { success: false, error: error.message };
+      console.error('❌ Error sending password reset OTP email:', error.message);
+      // Log the email for debugging
+      this.logEmail('Password Reset OTP (FAILED)', { email, name, otpCode, error: error.message });
+      // Return success to not block the user flow - the OTP is still valid
+      return { success: false, error: error.message, note: 'Email failed but OTP is still valid' };
     }
   }
 
@@ -106,9 +165,15 @@ class EmailService {
 
   // Send password reset email (legacy - keeping for reference)
   async sendPasswordResetEmail(data) {
-    try {
-      const { email, name, resetUrl } = data;
+    const { email, name, resetUrl } = data;
 
+    // If email service is not configured, just log it
+    if (!this.isConfigured || !this.transporter) {
+      this.logEmail('Password Reset', { email, name, resetUrl });
+      return { success: true, messageId: 'logged-only', note: 'Email service not configured' };
+    }
+
+    try {
       const mailOptions = {
         from: {
           name: process.env.EMAIL_FROM_NAME || 'WorkOrbit Support',
@@ -120,10 +185,11 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Password reset email sent:', info.messageId);
+      console.log('✅ Password reset email sent:', info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Error sending password reset email:', error);
+      console.error('❌ Error sending password reset email:', error.message);
+      this.logEmail('Password Reset (FAILED)', { email, name, resetUrl, error: error.message });
       return { success: false, error: error.message };
     }
   }
@@ -180,9 +246,19 @@ class EmailService {
 
   // Send application confirmation email
   async sendApplicationConfirmation(applicationData) {
-    try {
-      const { candidateInfo, jobTitle, company, trackingCode, securityPin } = applicationData;
+    const { candidateInfo, jobTitle, company } = applicationData;
 
+    // If email service is not configured, just log it
+    if (!this.isConfigured || !this.transporter) {
+      this.logEmail('Application Confirmation', {
+        to: candidateInfo.email,
+        subject: `Application Confirmation - ${jobTitle} at ${company}`,
+        applicationData
+      });
+      return { success: true, messageId: 'logged-only', note: 'Email service not configured' };
+    }
+
+    try {
       const mailOptions = {
         from: {
           name: process.env.EMAIL_FROM_NAME || 'WorkOrbit Recruitment',
@@ -194,19 +270,37 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Application confirmation email sent:', info.messageId);
+      console.log('✅ Application confirmation email sent:', info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Error sending application confirmation email:', error);
+      console.error('❌ Error sending application confirmation email:', error.message);
+      this.logEmail('Application Confirmation (FAILED)', {
+        to: candidateInfo.email,
+        subject: `Application Confirmation - ${jobTitle} at ${company}`,
+        error: error.message,
+        applicationData
+      });
       return { success: false, error: error.message };
     }
   }
 
   // Send status update email
   async sendStatusUpdate(applicationData, newStatus, remarks = '') {
-    try {
-      const { candidateInfo, jobTitle, company, trackingCode } = applicationData;
+    const { candidateInfo, jobTitle, company } = applicationData;
 
+    // If email service is not configured, just log it
+    if (!this.isConfigured || !this.transporter) {
+      this.logEmail('Status Update', {
+        to: candidateInfo.email,
+        subject: `Application Status Update - ${jobTitle} at ${company}`,
+        newStatus,
+        remarks,
+        applicationData
+      });
+      return { success: true, messageId: 'logged-only', note: 'Email service not configured' };
+    }
+
+    try {
       const mailOptions = {
         from: {
           name: process.env.EMAIL_FROM_NAME || 'WorkOrbit Recruitment',
@@ -218,11 +312,20 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Status update email sent:', info.messageId);
+      console.log('✅ Status update email sent:', info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Error sending status update email:', error);
-      return { success: false, error: error.message };
+      console.error('❌ Error sending status update email:', error.message);
+      this.logEmail('Status Update (FAILED)', {
+        to: candidateInfo.email,
+        subject: `Application Status Update - ${jobTitle} at ${company}`,
+        newStatus,
+        remarks,
+        error: error.message,
+        applicationData
+      });
+      // Don't fail the status update just because email failed
+      return { success: false, error: error.message, note: 'Status updated but email failed' };
     }
   }
 
@@ -566,6 +669,12 @@ class EmailService {
 
   // Send custom notification email
   async sendCustomNotification(to, subject, message, applicationData = null) {
+    // If email service is not configured, just log it
+    if (!this.isConfigured || !this.transporter) {
+      this.logEmail('Custom Notification', { to, subject, message, applicationData });
+      return { success: true, messageId: 'logged-only', note: 'Email service not configured' };
+    }
+
     try {
       const mailOptions = {
         from: {
@@ -613,10 +722,11 @@ class EmailService {
       };
 
       const info = await this.transporter.sendMail(mailOptions);
-      console.log('Custom notification email sent:', info.messageId);
+      console.log('✅ Custom notification email sent:', info.messageId);
       return { success: true, messageId: info.messageId };
     } catch (error) {
-      console.error('Error sending custom notification email:', error);
+      console.error('❌ Error sending custom notification email:', error.message);
+      this.logEmail('Custom Notification (FAILED)', { to, subject, message, error: error.message, applicationData });
       return { success: false, error: error.message };
     }
   }

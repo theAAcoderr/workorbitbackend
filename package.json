@@ -22,7 +22,9 @@
     "onboarding:seed:all": "node src/scripts/seed-all-organizations.js",
     "onboarding:seed:org": "node src/scripts/seed-onboarding-for-org.js",
     "onboarding:cleanup": "node src/scripts/cleanup-duplicate-tasks.js",
-    "onboarding:test": "node src/scripts/test-onboarding-api.js"
+    "onboarding:test": "node src/scripts/test-onboarding-api.js",
+    "email:test": "node test-email-service.js",
+    "email:test:no-config": "node test-email-no-config.js"
   },
   "keywords": [
     "employee-management",
