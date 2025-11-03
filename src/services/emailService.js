@@ -27,15 +27,12 @@ class EmailService {
         maxMessages: 100,
         rateDelta: 1000,
         rateLimit: 5,
-        connectionTimeout: 10000, // 10 seconds
-        greetingTimeout: 10000,
-        socketTimeout: 15000, // 15 seconds
-        // Retry configuration
-        retry: {
-          maxRetries: 2,
-          factor: 2,
-          minTimeout: 1000,
-          maxTimeout: 5000
+        connectionTimeout: 20000, // 20 seconds (increased)
+        greetingTimeout: 20000,
+        socketTimeout: 20000, // 20 seconds (increased)
+        // Longer timeouts for cloud environments
+        tls: {
+          rejectUnauthorized: false // Accept self-signed certificates
         }
       });
       console.log('✅ Email service initialized successfully');
